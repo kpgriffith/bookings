@@ -48,54 +48,32 @@ func (m *Repository) About(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// Reservation is the handler for the reservation page
+func (m *Repository) Reservation(w http.ResponseWriter, r *http.Request) {
+	render.RenderTemplate(w, "make-reservation.page.tmpl", &models.TemplateData{})
+}
+
 // Generals is the handler for the generals page
 func (m *Repository) Generals(w http.ResponseWriter, r *http.Request) {
-	sm := make(map[string]string)
-	sm["test"] = "Hello, again."
-
-	remoteIp := m.App.Session.GetString(r.Context(), "remote_ip")
-	sm["remoteip"] = remoteIp
-
-	render.RenderTemplate(w, "generals.page.tmpl", &models.TemplateData{
-		StringMap: sm,
-	})
+	render.RenderTemplate(w, "generals.page.tmpl", &models.TemplateData{})
 }
 
 // Majors is the handler for the majors page
 func (m *Repository) Majors(w http.ResponseWriter, r *http.Request) {
-	sm := make(map[string]string)
-	sm["test"] = "Hello, again."
-
-	remoteIp := m.App.Session.GetString(r.Context(), "remote_ip")
-	sm["remoteip"] = remoteIp
-
-	render.RenderTemplate(w, "majors.page.tmpl", &models.TemplateData{
-		StringMap: sm,
-	})
+	render.RenderTemplate(w, "majors.page.tmpl", &models.TemplateData{})
 }
 
 // Availability is the handler for the search availability page
 func (m *Repository) Availability(w http.ResponseWriter, r *http.Request) {
-	sm := make(map[string]string)
-	sm["test"] = "Hello, again."
+	render.RenderTemplate(w, "search-availability.page.tmpl", &models.TemplateData{})
+}
 
-	remoteIp := m.App.Session.GetString(r.Context(), "remote_ip")
-	sm["remoteip"] = remoteIp
-
-	render.RenderTemplate(w, "search-availability.page.tmpl", &models.TemplateData{
-		StringMap: sm,
-	})
+// Availability is the handler for the search availability page
+func (m *Repository) PostAvailability(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("Posted to search-availability"))
 }
 
 // Contact is the handler for the contact page
 func (m *Repository) Contact(w http.ResponseWriter, r *http.Request) {
-	sm := make(map[string]string)
-	sm["test"] = "Hello, again."
-
-	remoteIp := m.App.Session.GetString(r.Context(), "remote_ip")
-	sm["remoteip"] = remoteIp
-
-	render.RenderTemplate(w, "contact.page.tmpl", &models.TemplateData{
-		StringMap: sm,
-	})
+	render.RenderTemplate(w, "contact.page.tmpl", &models.TemplateData{})
 }
