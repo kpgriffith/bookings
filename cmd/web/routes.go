@@ -12,6 +12,7 @@ import (
 func routes(app *config.AppConfig) http.Handler {
 	mux := chi.NewRouter()
 
+	// set the middleware you want to use
 	mux.Use(middleware.Recoverer)
 	mux.Use(NoSurf)
 	mux.Use(SessionLoad)
@@ -22,6 +23,8 @@ func routes(app *config.AppConfig) http.Handler {
 	mux.Get("/majors-suite", handlers.Repo.Majors)
 	mux.Get("/search-availability", handlers.Repo.Availability)
 	mux.Post("/search-availability", handlers.Repo.PostAvailability)
+	mux.Get("/search-availability-json", handlers.Repo.AvailabilityJson)
+
 	mux.Get("/contact", handlers.Repo.Contact)
 	mux.Get("/make-reservation", handlers.Repo.Reservation)
 
