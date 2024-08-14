@@ -93,6 +93,7 @@ func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
+
 }
 
 // Generals is the handler for the generals page
@@ -139,4 +140,8 @@ func (m *Repository) AvailabilityJson(w http.ResponseWriter, r *http.Request) {
 // Contact is the handler for the contact page
 func (m *Repository) Contact(w http.ResponseWriter, r *http.Request) {
 	render.RenderTemplate(w, r, "contact.page.tmpl", &models.TemplateData{})
+}
+
+func (m *Repository) ReservationSummary(w http.ResponseWriter, r *http.Request) {
+	render.RenderTemplate(w, r, "reservation-summary.page.tmpl", &models.TemplateData{})
 }
