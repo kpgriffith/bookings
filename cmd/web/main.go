@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/gob"
 	"fmt"
 	"log"
 	"net/http"
@@ -9,6 +10,7 @@ import (
 	"github.com/alexedwards/scs/v2"
 	"github.com/kpgriffith/bookings/internal/config"
 	"github.com/kpgriffith/bookings/internal/handlers"
+	"github.com/kpgriffith/bookings/internal/models"
 	"github.com/kpgriffith/bookings/internal/render"
 )
 
@@ -19,26 +21,10 @@ var session *scs.SessionManager
 
 // main is the main function
 func main() {
-	app.InProduction = false
-
-	session = scs.New()
-	session.Lifetime = 24 * time.Hour
-	session.Cookie.Persist = true
-	session.Cookie.SameSite = http.SameSiteLaxMode
-	session.Cookie.Secure = app.InProduction
-	app.Session = session
-
-	tc, err := render.CreateTemplateCache()
+	err := run()
 	if err != nil {
-		log.Fatal("Cannot create template cache")
+		log.Fatal(err)
 	}
-	app.TemplateCache = tc
-	app.UseCache = false
-
-	repo := handlers.NewRepo(&app)
-	handlers.NewHandlers(repo)
-
-	render.NewTemplates(&app)
 
 	fmt.Printf("%s\n", fmt.Sprintf("Staring application on port %s", portNumber))
 
@@ -50,4 +36,33 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+func run() error {
+	// what am i going to put in the session
+	gob.Register(models.Reservation{})
+
+	// change this to true when in production
+	app.InProduction = false
+
+	session = scs.New()
+	session.Lifetime = 24 * time.Hour
+	session.Cookie.Persist = true
+	session.Cookie.SameSite = http.SameSiteLaxMode
+	session.Cookie.Secure = app.InProduction
+	app.Session = session
+
+	tc, err := render.CreateTemplateCache()
+	if err != nil {
+		return err
+	}
+	app.TemplateCache = tc
+	app.UseCache = false
+
+	repo := handlers.NewRepo(&app)
+	handlers.NewHandlers(repo)
+
+	render.NewTemplates(&app)
+
+	return nil
 }
