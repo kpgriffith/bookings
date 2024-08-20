@@ -81,7 +81,7 @@ func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 	form := forms.New(r.PostForm)
 	// server side validations
 	form.Required("first_name", "last_name", "email")
-	form.MinLength("first_name", 3, r)
+	form.MinLength("first_name", 3)
 	form.IsEmail("email")
 	// if form is invalid on post, add whatever data was in the form back to the data object and give it back to the page
 	if !form.Valid() {
