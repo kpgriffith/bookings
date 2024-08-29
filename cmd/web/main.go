@@ -10,6 +10,7 @@ import (
 
 	"github.com/alexedwards/scs/v2"
 	"github.com/kpgriffith/bookings/internal/config"
+	"github.com/kpgriffith/bookings/internal/driver"
 	"github.com/kpgriffith/bookings/internal/handlers"
 	"github.com/kpgriffith/bookings/internal/helpers"
 	"github.com/kpgriffith/bookings/internal/models"
@@ -25,10 +26,11 @@ var errorLog *log.Logger
 
 // main is the main function
 func main() {
-	err := run()
+	db, err := run()
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer db.SQL.Close()
 
 	fmt.Printf("%s\n", fmt.Sprintf("Staring application on port %s", portNumber))
 
@@ -42,9 +44,13 @@ func main() {
 	}
 }
 
-func run() error {
+func run() (*driver.DB, error) {
 	// what am i going to put in the session
 	gob.Register(models.Reservation{})
+	gob.Register(models.User{})
+	gob.Register(models.Restriction{})
+	gob.Register(models.Room{})
+	gob.Register(models.RoomRestriction{})
 
 	// change this to true when in production
 	app.InProduction = false
@@ -62,17 +68,24 @@ func run() error {
 	session.Cookie.Secure = app.InProduction
 	app.Session = session
 
+	// connect to db
+	log.Println("connecting to db")
+	db, err := driver.CreateConnection("host=localhost port=5432 dbname=kevin user=kevin password=")
+	if err != nil {
+		log.Fatal("Failed to connect to db", err)
+	}
+
 	tc, err := render.CreateTemplateCache()
 	if err != nil {
-		return err
+		return nil, err
 	}
 	app.TemplateCache = tc
 	app.UseCache = false
 
-	repo := handlers.NewRepo(&app)
+	repo := handlers.NewRepo(&app, db)
 	handlers.NewHandlers(repo)
-	render.NewTemplates(&app)
+	render.NewRenderer(&app)
 	helpers.NewHelpers(&app)
 
-	return nil
+	return db, nil
 }
