@@ -1,3 +1,2 @@
 add_index("reservations", ["start_date", "end_date"], {})
 add_index("reservations", "room_id", {})
-add_index("reservations", "user_id", {})

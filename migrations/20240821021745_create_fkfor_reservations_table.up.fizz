@@ -3,8 +3,3 @@ add_foreign_key("reservations", "room_id", {"rooms": ["id"]}, {
     "on_delete": "cascade",
     "on_update": "cascade",
 })
-add_foreign_key("reservations", "user_id", {"users": ["id"]}, {
-    "name": "fk_users",
-    "on_delete": "cascade",
-    "on_update": "cascade",
-})

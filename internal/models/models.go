@@ -10,6 +10,7 @@ type User struct {
 	Email       string
 	Password    string
 	AccessLevel int
+	Phone       string
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 }
@@ -33,7 +34,10 @@ type Restriction struct {
 // Reservation model
 type Reservation struct {
 	ID        int
-	UserId    int
+	FirstName string
+	LastName  string
+	Email     string
+	Phone     string
 	RoomId    int
 	StartDate time.Time
 	EndDate   time.Time

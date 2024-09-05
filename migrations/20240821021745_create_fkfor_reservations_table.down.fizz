@@ -1,2 +1,1 @@
 drop_foreign_key("reservations", "fk_rooms", {"if_exists": true})
-drop_foreign_key("reservations", "fk_users", {"if_exists": true})

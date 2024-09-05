@@ -1,3 +1,2 @@
 drop_index("reservations", "reservations_start_date_end_date_idx")
-drop_index("reservations", "reservations_user_id_idx")
 drop_index("reservations", "reservations_room_id_idx")

@@ -2,8 +2,9 @@ package handlers
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
+	"strconv"
+	"time"
 
 	"github.com/kpgriffith/bookings/internal/config"
 	"github.com/kpgriffith/bookings/internal/driver"
@@ -67,13 +68,39 @@ func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 		helpers.ServerError(w, err)
 		return
 	}
-	reservation := models.Reservation{
-		User: models.User{
-			FirstName: r.Form.Get("first_name"),
-			LastName:  r.Form.Get("last_name"),
-			Email:     r.Form.Get("email"),
-		},
+
+	sd := r.Form.Get("start_date")
+	ed := r.Form.Get("end_date")
+
+	// 01/02 03:04:05PM '06 -0700
+	layout := "2006-01-02"
+
+	start, err := time.Parse(layout, sd)
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
 	}
+	end, err := time.Parse(layout, ed)
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+	roomId, err := strconv.Atoi(r.Form.Get("room_id"))
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+
+	reservation := models.Reservation{
+		FirstName: r.Form.Get("first_name"),
+		LastName:  r.Form.Get("last_name"),
+		Email:     r.Form.Get("email"),
+		Phone:     r.Form.Get("phone"),
+		StartDate: start,
+		EndDate:   end,
+		RoomId:    roomId,
+	}
+
 	form := forms.New(r.PostForm)
 	// server side validations
 	form.Required("first_name", "last_name", "email")
@@ -87,6 +114,27 @@ func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 			Form: form,
 			Data: data,
 		})
+		return
+	}
+
+	// persist the reservation
+	res_id, err := m.DB.InsertReservation(reservation)
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+
+	// insert a room restriction now that the reservation is persisted.
+	room_restrict := models.RoomRestriction{
+		ReservationId: res_id,
+		RestrictionId: 1,
+		RoomId:        roomId,
+		StartDate:     start,
+		EndDate:       end,
+	}
+	_, err = m.DB.InsertRoomRestriction(room_restrict)
+	if err != nil {
+		helpers.ServerError(w, err)
 		return
 	}
 
@@ -114,7 +162,45 @@ func (m *Repository) Availability(w http.ResponseWriter, r *http.Request) {
 func (m *Repository) PostAvailability(w http.ResponseWriter, r *http.Request) {
 	start := r.Form.Get("start")
 	end := r.Form.Get("end")
-	w.Write([]byte(fmt.Sprintf("start date is %s and end date is %s", start, end)))
+
+	// 01/02 03:04:05PM '06 -0700
+	layout := "2006-01-02"
+
+	start_date, err := time.Parse(layout, start)
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+	end_date, err := time.Parse(layout, end)
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+
+	rooms, err := m.DB.SearchAvailabilityForAllRoomsByDates(start_date, end_date)
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+	if len(rooms) == 0 {
+		m.App.Session.Put(r.Context(), "error", "NOTHING AVAIBLE!!!")
+		http.Redirect(w, r, "/search-availability", http.StatusSeeOther)
+		return
+	}
+
+	res := models.Reservation{
+		StartDate: start_date,
+		EndDate:   end_date,
+	}
+
+	m.App.Session.Put(r.Context(), "reservation", res)
+
+	// create the data map to store in the templatedata struct
+	data := make(map[string]interface{})
+	data["rooms"] = rooms
+	render.Template(w, r, "choose-room.page.tmpl", &models.TemplateData{
+		Data: data,
+	})
 }
 
 type jsonResponse struct {

@@ -54,7 +54,7 @@ func Template(w http.ResponseWriter, r *http.Request, tmpl string, data *models.
 	data = AddDefaultData(data, r)
 	err := t.Execute(buf, data)
 	if err != nil {
-		log.Println("failed to execute the template")
+		log.Println("failed to execute the template", err)
 		return err
 	}
 
