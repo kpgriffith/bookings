@@ -60,8 +60,6 @@
                   document.getElementById('end').removeAttribute('disabled');
                 },
                 callback: function(result){
-                    console.log("called");
-
                     let form = document.getElementById("check-availability-form");
                     let formData = new FormData(form);
                     formData.append("csrf_token", "{{.CSRFToken}}");
@@ -74,9 +72,23 @@
                         .then(response => response.json())
                         .then(data => {
                             if (data.ok) {
-                                console.log("room is available!")
+                                attention.custom({
+                                    icon: "success",
+                                    msg: '<p>Room is available!</p>'
+                                        + '<p><a href="/book-room?id='
+                                        + data.room_id
+                                        + '&start='
+                                        + data.start_date
+                                        + '&end='
+                                        + data.end_date
+                                        + '" class="btn btn-primary">'
+                                        + 'Book now!</a></p>',
+                                    showConfirmButton: false,
+                                })
                             } else {
-                                console.log("room is NOT available!")
+                                attention.error({
+                                    msg: "No availability",
+                                })
                             }
                         })
                 }
