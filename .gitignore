@@ -1,6 +1,7 @@
 .idea
 .DS_Store
 bookings
-*/**.converage.html
-*/**.converage.out
+coverage.out
+*/**/coverage.html
+*/**/coverage.out
 database.yml

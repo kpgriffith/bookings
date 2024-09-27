@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"testing"
 	"time"
 
 	"github.com/alexedwards/scs/v2"
@@ -15,7 +16,6 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/justinas/nosurf"
 	"github.com/kpgriffith/bookings/internal/config"
-	"github.com/kpgriffith/bookings/internal/driver"
 	"github.com/kpgriffith/bookings/internal/models"
 	"github.com/kpgriffith/bookings/internal/render"
 )
@@ -25,7 +25,7 @@ var app config.AppConfig
 var session *scs.SessionManager
 var pathToTemplates = "./../../templates"
 
-func getRoutes() http.Handler {
+func TestMain(m *testing.M) {
 	// what am i going to put in the session
 	gob.Register(models.Reservation{})
 
@@ -55,18 +55,15 @@ func getRoutes() http.Handler {
 	app.TemplateCache = tc
 	app.UseCache = true
 
-	// connect to db
-	log.Println("connecting to db")
-	db, err := driver.CreateConnection("host=localhost port=5432 dbname=kevin user=kevin password=")
-	if err != nil {
-		log.Fatal("Failed to connect to db", err)
-	}
-
-	repo := NewRepo(&app, db)
+	repo := NewTestRepo(&app)
 	NewHandlers(repo)
 
 	render.NewRenderer(&app)
 
+	os.Exit(m.Run())
+}
+
+func getRoutes() http.Handler {
 	mux := chi.NewRouter()
 
 	// set the middleware you want to use
