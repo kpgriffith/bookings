@@ -12,5 +12,8 @@ Uses
 - [notie](https://github.com/jaredreich/notie)
 - [bootstrap 5.3.3](https://getbootstrap.com/)
 - [sweetalert2](https://sweetalert2.github.io/)
-
+- [soda](https://github.com/gobuffalo/soda?tab=readme-ov-file) - for managing db migrations
+- [buffalo](https://gobuffalo.io/pt/documentation/getting_started/installation/) - for managing db migrations
+- [buffalo-fizz](https://gobuffalo.io/pt/documentation/database/fizz/)
+- [pgx](https://github.com/jackc/pgx?tab=readme-ov-file) - for postgres
 

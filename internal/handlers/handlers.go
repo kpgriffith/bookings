@@ -97,13 +97,15 @@ func (m *Repository) Reservation(w http.ResponseWriter, r *http.Request) {
 func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 	reservation, ok := m.App.Session.Get(r.Context(), "reservation").(models.Reservation)
 	if !ok {
-		helpers.ServerError(w, errors.New("cannot get reservation from session"))
+		m.App.Session.Put(r.Context(), "error", "can't get reservation from session")
+		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return
 	}
 
 	err := r.ParseForm()
 	if err != nil {
-		helpers.ServerError(w, err)
+		m.App.Session.Put(r.Context(), "error", "can't parse form")
+		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return
 	}
 
@@ -131,7 +133,8 @@ func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 	// persist the reservation
 	res_id, err := m.DB.InsertReservation(reservation)
 	if err != nil {
-		helpers.ServerError(w, err)
+		m.App.Session.Put(r.Context(), "error", "can't insert reservation into database")
+		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return
 	}
 
@@ -145,7 +148,8 @@ func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 	}
 	_, err = m.DB.InsertRoomRestriction(room_restrict)
 	if err != nil {
-		helpers.ServerError(w, err)
+		m.App.Session.Put(r.Context(), "error", "can't insert room restriction")
+		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return
 	}
 
@@ -224,6 +228,18 @@ type jsonResponse struct {
 
 // AvailabilityJson is the handler for the availability and returns a json response
 func (m *Repository) AvailabilityJson(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		// can't parse form, so return appropriate json
+		resp := jsonResponse{
+			OK:      false,
+			Message: "Internal serror error",
+		}
+		out, _ := json.MarshalIndent(resp, "", "  ")
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(out)
+		return
+	}
 	sd := r.Form.Get("start")
 	ed := r.Form.Get("end")
 
@@ -234,7 +250,21 @@ func (m *Repository) AvailabilityJson(w http.ResponseWriter, r *http.Request) {
 
 	roomId, _ := strconv.Atoi(r.Form.Get("room_id"))
 
-	available, _ := m.DB.SearchAvailabilityByDatesByRoomId(startDate, endDate, roomId)
+	available, err := m.DB.SearchAvailabilityByDatesByRoomId(startDate, endDate, roomId)
+	if err != nil {
+		// can't parse form, so return appropriate json
+		resp := jsonResponse{
+			OK:        available,
+			Message:   "Error searching DB",
+			StartDate: sd,
+			EndDate:   ed,
+			RoomId:    strconv.Itoa(roomId),
+		}
+		out, _ := json.MarshalIndent(resp, "", "  ")
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(out)
+		return
+	}
 
 	resp := jsonResponse{
 		OK:        available,
@@ -244,11 +274,7 @@ func (m *Repository) AvailabilityJson(w http.ResponseWriter, r *http.Request) {
 		RoomId:    strconv.Itoa(roomId),
 	}
 
-	out, err := json.MarshalIndent(resp, "", "  ")
-	if err != nil {
-		helpers.ServerError(w, err)
-		return
-	}
+	out, _ := json.MarshalIndent(resp, "", "  ")
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(out)
 }
