@@ -39,6 +39,20 @@ func (p *testDbRepo) SearchAvailabilityByDatesByRoomId(start, end time.Time, roo
 // SearchAvailabilityForAllRoomsByDates return a slice of models.Room if there are rooms available, nil if not.
 func (p *testDbRepo) SearchAvailabilityForAllRoomsByDates(start, end time.Time) ([]*models.Room, error) {
 	var rooms []*models.Room
+
+	successStart, _ := time.Parse("2006-01-02", "2050-01-01")
+	if start.Equal(successStart) {
+		rooms = append(rooms, &models.Room{
+			ID:       1,
+			RoomName: "General's Quarters",
+		})
+	}
+
+	errorStart, _ := time.Parse("2006-01-02", "2100-01-01")
+	if start.Equal(errorStart) {
+		return rooms, errors.New("failed to query db")
+	}
+
 	return rooms, nil
 }
 

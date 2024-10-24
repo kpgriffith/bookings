@@ -46,6 +46,11 @@ func TestMain(m *testing.M) {
 	session.Cookie.Secure = app.InProduction
 	app.Session = session
 
+	mailChan := make(chan models.MailData)
+	app.MailChan = mailChan
+	defer close(mailChan)
+	listenForMail()
+
 	// create the template cache
 	tc, err := CreateTestTemplateCache()
 	if err != nil {
@@ -146,4 +151,12 @@ func CreateTestTemplateCache() (map[string]*template.Template, error) {
 	}
 
 	return myCache, nil
+}
+
+func listenForMail(){
+	go func(){
+		for {
+			_ = <- app.MailChan
+		}
+	}()
 }
